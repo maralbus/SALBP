@@ -1,0 +1,11 @@
+name: salbp
+channels:
+  - conda-forge
+  - plotly
+dependencies:
+    - python>=3.5
+    - plotly
+    - plotly-orca
+    - psutil
+    - numpy
+    - pip
