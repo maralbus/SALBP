@@ -8,4 +8,6 @@ dependencies:
     - plotly-orca
     - psutil
     - numpy
+    - pandas
+    - ortools
     - pip
