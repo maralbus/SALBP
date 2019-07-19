@@ -10,6 +10,7 @@ Created on May 13, 2019
 #############################################################################################
 
 History:
+- v1.0.3: update noSuccessor function to be more pythonic
 - v1.0.2: get nodes without predecessor
 - v1.0.1: collect data in dict
 - v1.0.0: first init
@@ -80,10 +81,11 @@ class SALBP:
             """
             tasks = list(data.keys())
             successors = [x for s in data.values() for x in s]
-            for s in successors:
-                if tasks.count(s):
-                    tasks.remove(s)
-            return tasks
+            
+            # for s in successors:
+            #     if tasks.count(s):
+            #         tasks.remove(s)
+            return list(set(tasks) - set(successors))
         
         l = noPredecessor(self.data['precedence'])
         print(l)
