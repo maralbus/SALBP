@@ -9,5 +9,6 @@ dependencies:
     - psutil
     - numpy
     - pandas
-    - ortools
     - pip
+    - pip:
+      - ortools
