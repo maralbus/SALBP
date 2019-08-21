@@ -81,15 +81,15 @@ class SALBP:
             """
             tasks = list(data.keys())
             successors = [x for s in data.values() for x in s]
-            
+
             # for s in successors:
             #     if tasks.count(s):
             #         tasks.remove(s)
             return list(set(tasks) - set(successors))
-        
+
         l = noPredecessor(self.data['precedence'])
         print(l)
-                    
+
 
 if __name__ == "__main__":
     s = SALBP()
