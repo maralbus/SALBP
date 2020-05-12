@@ -3,12 +3,14 @@ channels:
   - conda-forge
   - plotly
 dependencies:
-    - python>=3.5
-    - plotly
-    - plotly-orca
-    - psutil
+    - graphviz
     - numpy
     - pandas
     - pip
+    - plotly
+    - plotly-orca
+    - psutil
+    - python-graphviz
+    - python>=3.5
     - pip:
       - ortools
