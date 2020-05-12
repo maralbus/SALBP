@@ -16,10 +16,12 @@ History:
 - v1.0.0: first init
 """
 
+#%%
 import plotly as py
 import plotly.graph_objs as go
 # import plotly.io as pio
 
+from graphviz import Digraph
 import numpy as np
 
 
@@ -90,10 +92,20 @@ class SALBP:
         l = noPredecessor(self.data['precedence'])
         print(l)
 
-
+#%%
 if __name__ == "__main__":
     s = SALBP()
     s.loadData('/home/maa/git/SALBP/data/small_data_set_n_20/instance_n=20_1.alb')
     print(s.data)
     print('#' * 100)
     s.plotPrecedance()
+
+    task = lambda x: 'task_' + str(x)
+    dot = Digraph()
+    for i in s.data['taskTime']:
+        dot.node(task(i), task(i))
+
+
+    for t, successors in s.data['precedence'].items():
+        for successor in successors:
+            dot.edge(task(t), task(successor), label=str(s.data['taskTime'][t]))
