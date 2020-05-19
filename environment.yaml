@@ -12,5 +12,6 @@ dependencies:
     - psutil
     - python-graphviz
     - python>=3.5
+    - xlrd
     - pip:
       - ortools

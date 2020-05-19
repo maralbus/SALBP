@@ -101,11 +101,15 @@ if __name__ == "__main__":
     s.plotPrecedance()
 
     task = lambda x: 'task_' + str(x)
+    task_and_time = lambda x: 'task_' + str(x) + ':\n' + str(s.data['taskTime'][x])
     dot = Digraph()
     for i in s.data['taskTime']:
-        dot.node(task(i), task(i))
+        dot.node(task(i), task_and_time(i))
 
 
     for t, successors in s.data['precedence'].items():
         for successor in successors:
-            dot.edge(task(t), task(successor), label=str(s.data['taskTime'][t]))
+            dot.edge(task(t), task(successor))
+
+#%%
+    dot
