@@ -7,8 +7,7 @@ class Database:
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.df = self._read_database()
-        self.operations = ['providesHandlingOperationMove',
-                            'providesHandlingOperationTransfer',
+        self.operations = ['providesHandlingOperation',
                             'providesJoiningOperation',
                             'providesSeparationOperation']
 
@@ -30,7 +29,8 @@ class Database:
         Returns:
             int: product
         """
-        return functools.reduce(operator.mul, map(int, iterable.split('x')))
+        prod = functools.reduce(operator.mul, map(int, iterable.split('x')))
+        return prod * 1e-3 * 1e-3
 
     def _check_operation(self, data: str, operation_name: str) -> bool:
         """
