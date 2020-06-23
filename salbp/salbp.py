@@ -95,7 +95,7 @@ class SALBP:
 #%%
 if __name__ == "__main__":
     s = SALBP()
-    s.loadData('/home/maa/git/SALBP/data/small_data_set_n_20/instance_n=20_1.alb')
+    s.loadData('../data/small_data_set_n_20/instance_n=20_1.alb')
     print(s.data)
     print('#' * 100)
     s.plotPrecedance()
