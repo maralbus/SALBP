@@ -55,36 +55,30 @@ class Database:
         data = 0
         return np.random.uniform(low=4.0, high=30.0)
 
+    def define_operation(self, df: pd.DataFrame) -> pd.DataFrame:
+        for operation in self.operations:
+            df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: d._check_operation(x, operation))
+        return df
+
+
 #%%
 if __name__ == "__main__":
     d = Database("../data/database/Denso2021_SP1_ResourceDatabase_v0.18.xlsx")
     df = d.df
+    df = d.define_operation(df)
     print(df)
-
-#%% 
-    # prod = lambda s: functools.reduce(operator.mul, map(int, s.split('x')))
-    # df.loc[~df.providesOperation.isnull(), 'providesOperation'].apply(lambda x: d._check_operation(x, 'providesHandlingOperationMove'))
-    # df.loc[:, 'providesOperation'].drop_duplicates()
-    for operation in d.operations:
-        df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: d._check_operation(x, operation))
-
-# %%
-df.loc[91, :]
 
 # %%
 # 6AxisRobot "VP-5423" in Database pos: 341
+df.loc[91, :]
 df.loc[91, 'providesOperation'].split(';')
+
 
 # %%
 df['hasCycleTime'] = df['hasCycleTime'].apply(lambda x: np.random.uniform(low=4.0, high=30.0))
 
 # %%
 from plotly import graph_objs as go
-# %%
-
 data = go.Scatter(x=df.index, y=df.hasCycleTime)
 fig = go.Figure(data=data)
 fig.show()
-
-# %%
-df[df['hasName'] == "VP-5423"]
