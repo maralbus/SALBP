@@ -61,6 +61,79 @@ class Database:
         return df
 
 
+    def calcTimeForDistance(self, target_distance: int, velocity: float, acceleration: float) -> float:
+        """
+        calculate the minimum time necessary to achieve the target distance
+
+        Args:
+            target_distance (int): target distance [m]
+            velocity (float): maximum velocity [m/s]
+            acceleration (float): maximum acceleration [m/s^2]
+
+        Returns:
+            float: minimum time necessary to achieve the target distance [s]
+        """
+        # Time for acceleration ramp until the robot reaches the final velocity
+        # t = v/a
+        time_ramp = velocity / acceleration
+        
+        # Distance which the robot needs to reach the final velocity
+        # s = v^2 / 2a
+        # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
+        distance_for_target_vel = (velocity ** 2) / (2 * acceleration)
+        
+        # Time of the constant part of the movement
+        time_constant = (target_distance - 2 * distance_for_target_vel) / velocity
+
+        if distance_for_target_vel * 2 <= target_distance:
+            # final time
+            time = time_ramp * 2;
+            return time
+        else:
+            # final time
+            time = 2 * time_ramp + time_constant
+            return time
+
+
+    def calcDistanceInTime(self, target_time: int, velocity: float, acceleration: float) -> float:
+        """
+        calculate the maximum distance possible in the given target time
+
+        Args:
+            target_time (int): available time [s]
+            velocity (float): maximum velocity [m/s]
+            acceleration (float): maximum acceleration [m/s^2]
+
+        Returns:
+            float: maximum distance possible in the given time [m]
+        """
+        # Time for acceleration until the robot reaches the final velocity
+        time_ramp = velocity / acceleration
+        
+        # Distance which the robot needs to reach the final velocity
+        # s = v^2 / 2a
+        # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
+        distance_max_vel = velocity ** 2 / 2 * acceleration
+        
+        # Time of the constant part of the movement
+        distance_constant = velocity * (target_time - 2 * time_ramp)
+
+        # If the acceleration time is less than the target time -> Max speed will be reached.
+        if time_ramp * 2 <= target_time:
+            max_distance = distance_max_vel * 2 + distance_constant;
+        else:
+            # $t_{target} / 2 -> one ramp for acceleration, one for braking
+            time_ramp = target_time / 2
+        
+            # using s = 0,5a * t^2
+            # with $t_{acceleration} = t_{braking}$:
+            # s = 2 * 0,5a * t^2 = a * t^2
+            max_distance = acceleration * time_ramp ** 2
+
+        return max_distance
+
+
+
 #%%
 if __name__ == "__main__":
     d = Database("../data/database/Denso2021_SP1_ResourceDatabase_v0.18.xlsx")
