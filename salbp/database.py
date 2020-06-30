@@ -68,9 +68,9 @@ class Database:
         calculate the minimum time necessary to achieve the target distance
 
         Args:
-            target_distance (float): target distance [m]
-            velocity (float): maximum velocity [m/s]
-            acceleration (float): maximum acceleration [m/s^2]
+            target_distance (float): target distance [mm]
+            velocity (float): maximum velocity [mm/s]
+            acceleration (float): maximum acceleration [mm/s^2]
 
         Returns:
             float: minimum time necessary to achieve the target distance [s]
@@ -87,7 +87,7 @@ class Database:
         # Time of the constant part of the movement
         time_constant = (target_distance - 2 * distance_for_target_vel) / velocity
 
-        if distance_for_target_vel * 2 <= target_distance:
+        if distance_for_target_vel * 2 >= target_distance:
             # final time
             time = time_ramp * 2
             return time
@@ -102,11 +102,11 @@ class Database:
 
         Args:
             target_time (float): available time [s]
-            velocity (float): maximum velocity [m/s]
-            acceleration (float): maximum acceleration [m/s^2]
+            velocity (float): maximum velocity [mm/s]
+            acceleration (float): maximum acceleration [mm/s^2]
 
         Returns:
-            float: maximum distance possible in the given time [m]
+            float: maximum distance possible in the given time [mm]
         """
         # Time for acceleration until the robot reaches the final velocity
         time_ramp = velocity / acceleration
@@ -116,7 +116,7 @@ class Database:
             # Distance which the robot needs to reach the final velocity
             # s = v^2 / 2a
             # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
-            distance_max_vel = velocity ** 2 / 2 * acceleration
+            distance_max_vel = (velocity ** 2) / (2 * acceleration)
 
             # Time of the constant part of the movement
             # minimum: target_time - 2 * time_ramp = 0
@@ -157,12 +157,19 @@ fig = go.Figure(data=data)
 fig.show()
 
 # %%
-x = np.linspace(1, 12, 12)
-l = [d.calcDistanceInTime(target_time=time, velocity=5, acceleration=1) for time in x]
+x = np.linspace(1, 15, 15)
+l = [d.calcDistanceInTime(target_time=time, velocity=5000, acceleration=1000) for time in x]
 
 data = go.Scatter(x=x, y=l)
 fig = go.Figure(data=data)
-fig.update_layout(title="Distance in Time", xaxis_title="Time", yaxis_title="Distance")
+fig.update_layout(title="Distance in Time", xaxis_title="Time/s", yaxis_title="Distance/mm")
 fig.show()
 
 # %%
+x = np.linspace(1, 40_000, 1000)
+l = [d.calcTimeForDistance(target_distance=distance, velocity=5000, acceleration=1000) for distance in x]
+
+data = go.Scatter(x=x, y=l)
+fig = go.Figure(data=data)
+fig.update_layout(title="Time for Distance", xaxis_title="Distance/mm", yaxis_title="Time/s")
+fig.show()
