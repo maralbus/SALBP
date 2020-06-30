@@ -16,7 +16,7 @@ class Database:
                            'providesSeparationOperation']
 
     def _read_database(self):
-        columns = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime']
+        columns = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration']
         df = pd.read_excel(self.filepath, sheet_name='Resources', header=1, usecols=columns)
         df = df.drop([0, 1], axis=0).reset_index(drop=True)
         df.hasFootprint[df.hasFootprint.isnull()] = '0x0'
@@ -143,13 +143,22 @@ if __name__ == "__main__":
     print(df)
 
 # %%
-# 6AxisRobot "VP-5423" in Database pos: 341
-df.loc[91, :]
-df.loc[91, 'providesOperation'].split(';')
-
+# 6AxisRobot "VP-5423" in Database pos: 197
+df.loc[197, :]
+# df.loc[91, 'providesOperation'].split(';')
+robot = df.loc[197, :].copy()
 
 # %%
-df['hasCycleTime'] = df['hasCycleTime'].apply(lambda x: np.random.uniform(low=4.0, high=30.0))
+v = robot['hasMaximumVelocity']
+a = robot['hasMaximumAcceleration']
+
+d.calcTimeForDistance(target_distance=2000, velocity=v, acceleration=a)
+
+# %%
+df = df.rename(columns={'hasName': 'name', 'hasCycleTime':'cycleTime', 'hasPrice': 'price', 'hasFootprint': 'footprint', 'hasMaximumVelocity': 'velocity', 'hasMaximumAcceleration': 'acceleration'})
+
+# %%
+df.columns
 
 # %%
 data = go.Scatter(x=df.index, y=df.hasCycleTime)
