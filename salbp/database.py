@@ -1,6 +1,7 @@
 # %%
 from plotly import graph_objs as go
 import pandas as pd
+
 import numpy as np
 import operator
 import functools
@@ -62,12 +63,12 @@ class Database:
             df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: d._check_operation(x, operation))
         return df
 
-    def calcTimeForDistance(self, target_distance: int, velocity: float, acceleration: float) -> float:
+    def calcTimeForDistance(self, target_distance: float, velocity: float, acceleration: float) -> float:
         """
         calculate the minimum time necessary to achieve the target distance
 
         Args:
-            target_distance (int): target distance [m]
+            target_distance (float): target distance [m]
             velocity (float): maximum velocity [m/s]
             acceleration (float): maximum acceleration [m/s^2]
 
@@ -95,12 +96,12 @@ class Database:
             time = 2 * time_ramp + time_constant
             return time
 
-    def calcDistanceInTime(self, target_time: int, velocity: float, acceleration: float) -> float:
+    def calcDistanceInTime(self, target_time: float, velocity: float, acceleration: float) -> float:
         """
         calculate the maximum distance possible in the given target time
 
         Args:
-            target_time (int): available time [s]
+            target_time (float): available time [s]
             velocity (float): maximum velocity [m/s]
             acceleration (float): maximum acceleration [m/s^2]
 
@@ -110,16 +111,17 @@ class Database:
         # Time for acceleration until the robot reaches the final velocity
         time_ramp = velocity / acceleration
 
-        # Distance which the robot needs to reach the final velocity
-        # s = v^2 / 2a
-        # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
-        distance_max_vel = velocity ** 2 / 2 * acceleration
-
-        # Time of the constant part of the movement
-        distance_constant = velocity * (target_time - 2 * time_ramp)
-
         # If the acceleration time is less than the target time -> Max speed will be reached.
         if time_ramp * 2 <= target_time:
+            # Distance which the robot needs to reach the final velocity
+            # s = v^2 / 2a
+            # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
+            distance_max_vel = velocity ** 2 / 2 * acceleration
+
+            # Time of the constant part of the movement
+            # minimum: target_time - 2 * time_ramp = 0
+            distance_constant = velocity * (target_time - 2 * time_ramp)
+
             max_distance = distance_max_vel * 2 + distance_constant
         else:
             # $t_{target} / 2 -> one ramp for acceleration, one for braking
@@ -153,3 +155,14 @@ df['hasCycleTime'] = df['hasCycleTime'].apply(lambda x: np.random.uniform(low=4.
 data = go.Scatter(x=df.index, y=df.hasCycleTime)
 fig = go.Figure(data=data)
 fig.show()
+
+# %%
+x = np.linspace(1, 12, 12)
+l = [d.calcDistanceInTime(target_time=time, velocity=5, acceleration=1) for time in x]
+
+data = go.Scatter(x=x, y=l)
+fig = go.Figure(data=data)
+fig.update_layout(title="Distance in Time", xaxis_title="Time", yaxis_title="Distance")
+fig.show()
+
+# %%
