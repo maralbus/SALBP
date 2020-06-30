@@ -1,16 +1,18 @@
 # %%
+from plotly import graph_objs as go
 import pandas as pd
 import numpy as np
 import operator
 import functools
+
 
 class Database:
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.df = self._read_database()
         self.operations = ['providesHandlingOperation',
-                            'providesJoiningOperation',
-                            'providesSeparationOperation']
+                           'providesJoiningOperation',
+                           'providesSeparationOperation']
 
     def _read_database(self):
         columns = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime']
@@ -60,7 +62,6 @@ class Database:
             df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: d._check_operation(x, operation))
         return df
 
-
     def calcTimeForDistance(self, target_distance: int, velocity: float, acceleration: float) -> float:
         """
         calculate the minimum time necessary to achieve the target distance
@@ -76,24 +77,23 @@ class Database:
         # Time for acceleration ramp until the robot reaches the final velocity
         # t = v/a
         time_ramp = velocity / acceleration
-        
+
         # Distance which the robot needs to reach the final velocity
         # s = v^2 / 2a
         # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
         distance_for_target_vel = (velocity ** 2) / (2 * acceleration)
-        
+
         # Time of the constant part of the movement
         time_constant = (target_distance - 2 * distance_for_target_vel) / velocity
 
         if distance_for_target_vel * 2 <= target_distance:
             # final time
-            time = time_ramp * 2;
+            time = time_ramp * 2
             return time
         else:
             # final time
             time = 2 * time_ramp + time_constant
             return time
-
 
     def calcDistanceInTime(self, target_time: int, velocity: float, acceleration: float) -> float:
         """
@@ -109,22 +109,22 @@ class Database:
         """
         # Time for acceleration until the robot reaches the final velocity
         time_ramp = velocity / acceleration
-        
+
         # Distance which the robot needs to reach the final velocity
         # s = v^2 / 2a
         # s = 0.5a * t^2 | t = v/a --> s = v^2 / 2a
         distance_max_vel = velocity ** 2 / 2 * acceleration
-        
+
         # Time of the constant part of the movement
         distance_constant = velocity * (target_time - 2 * time_ramp)
 
         # If the acceleration time is less than the target time -> Max speed will be reached.
         if time_ramp * 2 <= target_time:
-            max_distance = distance_max_vel * 2 + distance_constant;
+            max_distance = distance_max_vel * 2 + distance_constant
         else:
             # $t_{target} / 2 -> one ramp for acceleration, one for braking
             time_ramp = target_time / 2
-        
+
             # using s = 0,5a * t^2
             # with $t_{acceleration} = t_{braking}$:
             # s = 2 * 0,5a * t^2 = a * t^2
@@ -133,8 +133,7 @@ class Database:
         return max_distance
 
 
-
-#%%
+# %%
 if __name__ == "__main__":
     d = Database("../data/database/Denso2021_SP1_ResourceDatabase_v0.18.xlsx")
     df = d.df
@@ -151,7 +150,6 @@ df.loc[91, 'providesOperation'].split(';')
 df['hasCycleTime'] = df['hasCycleTime'].apply(lambda x: np.random.uniform(low=4.0, high=30.0))
 
 # %%
-from plotly import graph_objs as go
 data = go.Scatter(x=df.index, y=df.hasCycleTime)
 fig = go.Figure(data=data)
 fig.show()
