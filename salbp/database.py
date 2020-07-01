@@ -10,14 +10,21 @@ import functools
 class Database:
     def __init__(self, filepath: str):
         self.filepath = filepath
-        self.df = self._read_database()
         self.operations = ['providesHandlingOperation',
                            'providesJoiningOperation',
                            'providesSeparationOperation']
+        self.columns_rename = {'hasName': 'name', 
+                                'hasPrice': 'price', 
+                                'hasCycleTime':'cycle_time', 
+                                'hasFootprint': 'footprint', 
+                                'hasMaximumVelocity': 'velocity', 
+                                'hasMaximumAcceleration': 'acceleration'}
+        self.columns_csv = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration']
+        self.df = self._read_database()
+        self.df = self._postprocessing(self.df)
 
     def _read_database(self):
-        columns = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration']
-        df = pd.read_excel(self.filepath, sheet_name='Resources', header=1, usecols=columns)
+        df = pd.read_excel(self.filepath, sheet_name='Resources', header=1, usecols=self.columns_csv)
         df = df.drop([0, 1], axis=0).reset_index(drop=True)
         df.hasFootprint[df.hasFootprint.isnull()] = '0x0'
         df.hasFootprint = df.hasFootprint.apply(lambda x: self._product_footprint(x))
@@ -60,7 +67,7 @@ class Database:
 
     def define_operation(self, df: pd.DataFrame) -> pd.DataFrame:
         for operation in self.operations:
-            df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: d._check_operation(x, operation))
+            df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: self._check_operation(x, operation))
         return df
 
     def calcTimeForDistance(self, target_distance: float, velocity: float, acceleration: float) -> float:
@@ -134,28 +141,29 @@ class Database:
 
         return max_distance
 
+    def _postprocessing(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = self.define_operation(df)
+        df.rename(columns=self.columns_rename, inplace=True)
+        return df
+
 
 # %%
 if __name__ == "__main__":
     d = Database("../data/database/Denso2021_SP1_ResourceDatabase_v0.18.xlsx")
     df = d.df
-    df = d.define_operation(df)
     print(df)
 
 # %%
-# 6AxisRobot "VP-5423" in Database pos: 197
 df.loc[197, :]
 # df.loc[91, 'providesOperation'].split(';')
 robot = df.loc[197, :].copy()
 
 # %%
-v = robot['hasMaximumVelocity']
-a = robot['hasMaximumAcceleration']
+v = robot['velocity']
+a = robot['acceleration']
 
 d.calcTimeForDistance(target_distance=2000, velocity=v, acceleration=a)
 
-# %%
-df = df.rename(columns={'hasName': 'name', 'hasCycleTime':'cycleTime', 'hasPrice': 'price', 'hasFootprint': 'footprint', 'hasMaximumVelocity': 'velocity', 'hasMaximumAcceleration': 'acceleration'})
 
 # %%
 df.columns
@@ -167,7 +175,7 @@ fig.show()
 
 # %%
 x = np.linspace(1, 15, 15)
-l = [d.calcDistanceInTime(target_time=time, velocity=5000, acceleration=1000) for time in x]
+l = [d.calcDistanceInTime(target_time=time, velocity=5e3, acceleration=1e3) for time in x]
 
 data = go.Scatter(x=x, y=l)
 fig = go.Figure(data=data)
@@ -176,7 +184,7 @@ fig.show()
 
 # %%
 x = np.linspace(1, 40_000, 1000)
-l = [d.calcTimeForDistance(target_distance=distance, velocity=5000, acceleration=1000) for distance in x]
+l = [d.calcTimeForDistance(target_distance=distance, velocity=5e3, acceleration=1e3) for distance in x]
 
 data = go.Scatter(x=x, y=l)
 fig = go.Figure(data=data)
