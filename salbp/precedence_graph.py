@@ -16,16 +16,14 @@ History:
 - v1.0.0: first init
 """
 
-#%%
+# %%
+import numpy as np
 import plotly as py
 import plotly.graph_objs as go
-# import plotly.io as pio
-
 from graphviz import Digraph
-import numpy as np
 
 
-class SALBP:
+class PrecedenceGraph:
     def __init__(self):
         tags = ['tasks', 'cycleTime', 'taskTime', 'precedence']
         self.data = {t: 0 for t in tags}
@@ -69,12 +67,11 @@ class SALBP:
                     j += 1
                 self.data['precedence'] = precedence
 
-
     def plotPrecedance(self):
         """
         plot precedence graph
         """
-        def noPredecessor(data:dict):
+        def noPredecessor(data: dict):
             """
             param:
                 data (dict): data to search in
@@ -92,24 +89,24 @@ class SALBP:
         l = noPredecessor(self.data['precedence'])
         print(l)
 
-#%%
-if __name__ == "__main__":
-    s = SALBP()
-    s.loadData('../data/small_data_set_n_20/instance_n=20_1.alb')
-    print(s.data)
-    print('#' * 100)
-    s.plotPrecedance()
 
-    task = lambda x: 'task_' + str(x)
-    task_and_time = lambda x: 'task_' + str(x) + ':\n' + str(s.data['taskTime'][x])
+# %%
+if __name__ == "__main__":
+    pg = PrecedenceGraph()
+    pg.loadData('../data/small_data_set_n_20/instance_n=20_1.alb')
+    print(pg.data)
+    print('#' * 100)
+    pg.plotPrecedance()
+
+    def task(x): return 'task_' + str(x)
+    def task_and_time(x): return 'task_' + str(x) + ':\n' + str(pg.data['taskTime'][x])
     dot = Digraph()
-    for i in s.data['taskTime']:
+    for i in pg.data['taskTime']:
         dot.node(task(i), task_and_time(i))
 
-
-    for t, successors in s.data['precedence'].items():
+    for t, successors in pg.data['precedence'].items():
         for successor in successors:
             dot.edge(task(t), task(successor))
 
-#%%
+# %%
     dot
