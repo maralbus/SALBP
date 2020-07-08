@@ -18,8 +18,10 @@ class Database:
                                 'hasCycleTime':'cycle_time', 
                                 'hasFootprint': 'footprint', 
                                 'hasMaximumVelocity': 'velocity', 
-                                'hasMaximumAcceleration': 'acceleration'}
-        self.columns_csv = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration']
+                                'hasMaximumAcceleration': 'acceleration',
+                                'isProcessTypeMD': 'module',
+                                'hasReach': 'reach'}
+        self.columns_csv = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration', 'hasReach']
         self.df = self._read_database()
         self.df = self._postprocessing(self.df)
 
