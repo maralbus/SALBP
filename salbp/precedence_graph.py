@@ -8,12 +8,6 @@ Created on May 13, 2019
 @version: 1.0.0
 
 #############################################################################################
-
-History:
-- v1.0.3: update noSuccessor function to be more pythonic
-- v1.0.2: get nodes without predecessor
-- v1.0.1: collect data in dict
-- v1.0.0: first init
 """
 
 # %%
@@ -25,10 +19,10 @@ from graphviz import Digraph
 
 class PrecedenceGraph:
     def __init__(self):
-        tags = ['tasks', 'cycleTime', 'taskTime', 'precedence']
+        tags = ['num_tasks', 'cycle_time', 'task_time', 'precedence']
         self.data = {t: 0 for t in tags}
 
-    def loadData(self, filepath: str) -> None:
+    def load_data(self, filepath: str) -> None:
         """
         param:
             filepath (str): path to file
@@ -41,18 +35,18 @@ class PrecedenceGraph:
 
         for i in range(len(buffer)):
             if buffer[i].replace('\n', '') in ['<number of tasks>']:
-                self.data['tasks'] = int(buffer[i + 1])
+                self.data['num_tasks'] = int(buffer[i + 1])
 
             elif buffer[i].replace('\n', '') in ['<cycle time>']:
-                self.data['cycleTime'] = int(buffer[i + 1])
+                self.data['cycle_time'] = int(buffer[i + 1])
 
             elif buffer[i].replace('\n', '') in ['<task times>']:
                 task_time = {}
-                for j in range(1, self.data['tasks'] + 1):
+                for j in range(1, self.data['num_tasks'] + 1):
                     task, time = buffer[i + j].replace(',', ' ').split()
                     task, time = int(task), int(time)
-                    task_time[task] = time
-                self.data['taskTime'] = task_time
+                    task_time[task] = time / 10
+                self.data['task_time'] = task_time
 
             elif buffer[i].replace('\n', '') in ['<precedence relations>']:
                 j = 1
@@ -67,11 +61,11 @@ class PrecedenceGraph:
                     j += 1
                 self.data['precedence'] = precedence
 
-    def plotPrecedance(self):
+    def plot_precedance(self):
         """
         plot precedence graph
         """
-        def noPredecessor(data: dict):
+        def no_predecessor(data: dict):
             """
             param:
                 data (dict): data to search in
@@ -86,27 +80,51 @@ class PrecedenceGraph:
             #         tasks.remove(s)
             return list(set(tasks) - set(successors))
 
-        l = noPredecessor(self.data['precedence'])
+        l = no_predecessor(self.data['precedence'])
         print(l)
+
+    def task_description(self, x: int) -> str:
+        return 'task_' + str(x)
+
+    def node_description(self, x: int) -> str:
+        return 'task_' + str(x) + ':\n' + str(self.data['task_time'][x]) + ':\n' + str(self.data['task_type'][x])
 
 
 # %%
 if __name__ == "__main__":
     pg = PrecedenceGraph()
-    pg.loadData('../data/small_data_set_n_20/instance_n=20_1.alb')
+    pg.load_data('../data/small_data_set_n_20/instance_n=20_1.alb')
     print(pg.data)
     print('#' * 100)
-    pg.plotPrecedance()
+    pg.plot_precedance()
+    pg.data['task_type'] = {1: 'transfer',
+                            2: 'transfer',
+                            3: 'transfer',
+                            4: 'transfer',
+                            5: 'separation',
+                            6: 'separation',
+                            7: 'separation',
+                            8: 'separation',
+                            9: 'separation',
+                            10: 'handling',
+                            11: 'handling',
+                            12: 'joining',
+                            13: 'joining',
+                            14: 'transfer',
+                            15: 'transfer',
+                            16: 'separation',
+                            17: 'separation',
+                            18: 'separation',
+                            19: 'separation',
+                            20: 'separation'}
 
-    def task(x): return 'task_' + str(x)
-    def task_and_time(x): return 'task_' + str(x) + ':\n' + str(pg.data['taskTime'][x])
     dot = Digraph()
-    for i in pg.data['taskTime']:
-        dot.node(task(i), task_and_time(i))
+    for i in pg.data['task_time']:
+        dot.node(pg.task_description(i), pg.node_description(i))
 
     for t, successors in pg.data['precedence'].items():
         for successor in successors:
-            dot.edge(task(t), task(successor))
+            dot.edge(pg.task_description(t), pg.task_description(successor))
 
 # %%
     dot
