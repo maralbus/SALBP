@@ -61,27 +61,17 @@ class PrecedenceGraph:
                     j += 1
                 self.data['precedence'] = precedence
 
-    def plot_precedance(self):
+    def no_predecessor(self, data: dict) -> list:
         """
-        plot precedence graph
+        param:
+            data (dict): data to search in
+        return:
+            list with nodes wihout predecessor
         """
-        def no_predecessor(data: dict):
-            """
-            param:
-                data (dict): data to search in
-            return:
-                list with nodes wihout predecessor
-            """
-            tasks = list(data.keys())
-            successors = [x for s in data.values() for x in s]
+        tasks = list(data.keys())
+        successors = [x for s in data.values() for x in s]
 
-            # for s in successors:
-            #     if tasks.count(s):
-            #         tasks.remove(s)
-            return list(set(tasks) - set(successors))
-
-        l = no_predecessor(self.data['precedence'])
-        print(l)
+        return list(set(tasks) - set(successors))
 
     def task_description(self, x: int) -> str:
         return 'task_' + str(x)
@@ -96,7 +86,7 @@ if __name__ == "__main__":
     pg.load_data('../data/small_data_set_n_20/instance_n=20_1.alb')
     print(pg.data)
     print('#' * 100)
-    pg.plot_precedance()
+    pg.no_predecessor(pg.data['precedence'])
     pg.data['task_type'] = {1: 'transfer',
                             2: 'transfer',
                             3: 'transfer',
