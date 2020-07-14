@@ -81,7 +81,7 @@ class Database:
             df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: self._check_operation(x, operation))
         return df
 
-    def calcTimeForDistance(self, target_distance: float, velocity: float, acceleration: float) -> float:
+    def calc_time_for_distance(self, target_distance: float, velocity: float, acceleration: float) -> float:
         """
         calculate the minimum time necessary to achieve the target distance
 
@@ -114,7 +114,7 @@ class Database:
             time = 2 * time_ramp + time_constant
             return time
 
-    def calcDistanceInTime(self, target_time: float, velocity: float, acceleration: float) -> float:
+    def calc_distance_in_time(self, target_time: float, velocity: float, acceleration: float) -> float:
         """
         calculate the maximum distance possible in the given target time
 
@@ -166,39 +166,39 @@ if __name__ == "__main__":
     print(df)
 
 # %%
-df.loc[197, :]
-# df.loc[91, 'providesOperation'].split(';')
-robot = df.loc[197, :].copy()
+# x = np.linspace(1, 15, 15)
+# l = [d.calc_distance_in_time(target_time=time, velocity=5e3, acceleration=1e3) for time in x]
+# data = go.Scatter(x=x, y=l)
+# fig = go.Figure(data=data)
+# fig.update_layout(title="Distance in Time", xaxis_title="Time/s", yaxis_title="Distance/mm")
+# fig.show()
+
+# x = np.linspace(1, 40_000, 1000)
+# l = [d.calc_time_for_distance(target_distance=distance, velocity=5e3, acceleration=1e3) for distance in x]
+# data = go.Scatter(x=x, y=l)
+# fig = go.Figure(data=data)
+# fig.update_layout(title="Time for Distance", xaxis_title="Distance/mm", yaxis_title="Time/s")
+# fig.show()
 
 # %%
-v = robot['velocity']
-a = robot['acceleration']
+df['cycle_time'] = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
 
-d.calcTimeForDistance(target_distance=2000, velocity=v, acceleration=a)
+# %%
+df.cycle_time[df.cycle_time > 0]
 
 
 # %%
-df.columns
+df_robots = df[df['module'] == 'RobotMD'].copy()
+df.cycle_time = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
 
 # %%
-data = go.Scatter(x=df.index, y=df.hasCycleTime)
-fig = go.Figure(data=data)
-fig.show()
+for i in range(len(df_robots)):
+    cycle_time = d.calc_time_for_distance(target_distance=df_robots.iloc[i]['reach'], velocity=df_robots.iloc[i]['velocity'], acceleration=df_robots.iloc[i]['acceleration'])
+    print(cycle_time)
 
 # %%
-x = np.linspace(1, 15, 15)
-l = [d.calcDistanceInTime(target_time=time, velocity=5e3, acceleration=1e3) for time in x]
-
-data = go.Scatter(x=x, y=l)
-fig = go.Figure(data=data)
-fig.update_layout(title="Distance in Time", xaxis_title="Time/s", yaxis_title="Distance/mm")
-fig.show()
+time = d.calc_time_for_distance(target_distance=df_robots.iloc[-1]['reach'], velocity=df_robots.iloc[-1]['velocity'], acceleration=df_robots.iloc[-1]['acceleration'])
+print(f"takes {time} s")
 
 # %%
-x = np.linspace(1, 40_000, 1000)
-l = [d.calcTimeForDistance(target_distance=distance, velocity=5e3, acceleration=1e3) for distance in x]
-
-data = go.Scatter(x=x, y=l)
-fig = go.Figure(data=data)
-fig.update_layout(title="Time for Distance", xaxis_title="Distance/mm", yaxis_title="Time/s")
-fig.show()
+df.loc[df.module=='RobotMD', 'price']
