@@ -63,9 +63,18 @@ class Database:
         else:
             return 0
 
-    def _calc_cycle_time(self, data) -> float:
-        data = 0
-        return np.random.uniform(low=4.0, high=30.0)
+    def calc_cycle_time(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        calculate the cycle time for a pandas dataframe based on 'velocity', 'acceleration' and 'reach' of the resource
+
+        Args:
+            df (pd.DataFrame): the resource database as dataframe
+
+        Returns:
+            pd.DataFrame: resource database as dataframe with new column 'cycle_time'
+        """
+        df['cycle_time'] = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
+        return df
 
     def define_operation(self, df: pd.DataFrame) -> pd.DataFrame:
         for operation in self.operations:
@@ -144,8 +153,9 @@ class Database:
         return max_distance
 
     def _postprocessing(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = self.define_operation(df)
         df.rename(columns=self.columns_rename, inplace=True)
+        df = self.define_operation(df=df)
+        df = self.calc_cycle_time(df=df)
         return df
 
 
