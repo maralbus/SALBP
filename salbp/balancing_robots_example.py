@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
 
-
+# %%
+%%capture info
+%%timeit
 import numpy as np
 import pandas as pd
 from ortools.linear_solver import pywraplp
@@ -24,15 +25,7 @@ df = pd.DataFrame({'name': names, 'cost': costs, 'size': sizes, 'handling': hand
 df.head(10)
 
 
-# In[2]:
-
-
-constraints = {'cost': 2000, 'size': 10.0, 'handling': 8, 'positioning': 5, 'joining': 3}
-
-
-# ## Create Variables
-
-# In[3]:
+constraints = {'cost': 20000, 'size': 10.0, 'handling': 8, 'positioning': 5, 'joining': 3}
 
 
 solver = pywraplp.Solver('simple_lp_programm', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
@@ -55,33 +48,17 @@ print('Number of variables:', solver.NumVariables())
 # \text{s = size}
 # \end{equation}
 
-# In[4]:
-
-
 def fitness(robot):
     l = lambda x: df.loc[df.name==str(robot), x].values[0]
     f = l('cost') / constraints['cost'] + l('size') / constraints['size']
     return f
 
 
-# ## Create Objective Function
-
-# In[5]:
-
-
 # create objective function
 solver.Minimize(solver.Sum( [fitness(robot[i]) for i in range(len(robot))] ))
 
 
-# In[6]:
-
-
 ll = lambda s: [robot[i] * df[s][i] for i in range(len(df))]
-
-
-# ## Create Constraints
-
-# In[7]:
 
 
 # create constraints
@@ -90,9 +67,6 @@ solver.Add(0 <= solver.Sum(ll('size')) <= constraints['size'])
 solver.Add(constraints['handling'] <= solver.Sum(ll('handling')))
 solver.Add(constraints['positioning'] <= solver.Sum(ll('positioning')))
 solver.Add(constraints['joining'] <= solver.Sum(ll('joining')))
-
-
-# In[ ]:
 
 
 result_status = solver.Solve()
@@ -133,9 +107,7 @@ print('Joining =', joining, '/', constraints['joining'])
 
 # **Objective here is to minimize the fitness function**
 
-# In[ ]:
+# df.loc[df.name.isin(robots), :]
 
 
-df.loc[df.name.isin(robots), :]
-
-
+# %%
