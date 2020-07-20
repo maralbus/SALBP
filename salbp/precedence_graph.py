@@ -15,12 +15,15 @@ import numpy as np
 import plotly as py
 import plotly.graph_objs as go
 from graphviz import Digraph
+from collections import namedtuple
 
+
+Task = namedtuple('Task', ['start', 'stop', 'interval', 'successor', 'predecessor'])
 
 class PrecedenceGraph:
     def __init__(self):
-        tags = ['num_tasks', 'cycle_time', 'task_time', 'precedence']
-        self.data = {t: 0 for t in tags}
+        tags = ['num_tasks', 'cycle_time', 'task_time', 'precedence', 'task']
+        self.data = {t: {} for t in tags}
 
     def load_data(self, filepath: str) -> None:
         """
@@ -45,7 +48,10 @@ class PrecedenceGraph:
                 for j in range(1, self.data['num_tasks'] + 1):
                     task, time = buffer[i + j].replace(',', ' ').split()
                     task, time = int(task), int(time)
-                    task_time[task] = time / 10
+                    interval = time / 10
+                    task_time[task] = interval
+                    task_tuple = Task(start=0, stop=0, interval=interval, predecessor=[], successor=[])
+                    self.data['task'][j] = task_tuple
                 self.data['task_time'] = task_time
 
             elif buffer[i].replace('\n', '') in ['<precedence relations>']:
@@ -58,6 +64,8 @@ class PrecedenceGraph:
                     if p1 not in precedence.keys():
                         precedence[p1] = []
                     precedence[p1].append(p2)
+                    self.data['task'][p1].successor.append(p2)
+                    self.data['task'][p2].predecessor.append(p1)
                     j += 1
                 self.data['precedence'] = precedence
 
@@ -109,12 +117,14 @@ if __name__ == "__main__":
                             20: 'separation'}
 
     dot = Digraph()
-    for i in pg.data['task_time']:
-        dot.node(pg.task_description(i), pg.node_description(i))
+    for task in pg.data['task']:
+        dot.node(pg.task_description(task), pg.node_description(task))
 
-    for t, successors in pg.data['precedence'].items():
-        for successor in successors:
-            dot.edge(pg.task_description(t), pg.task_description(successor))
+    # for task_number, successors in pg.data['precedence'].items():
+    for task_number, info in pg.data['task'].items():
+        # for successor in successors:
+        for successor_ in info.successor:
+            dot.edge(pg.task_description(task_number), pg.task_description(successor_))
 
 # %%
     dot
