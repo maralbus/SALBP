@@ -13,14 +13,18 @@ class Database:
         self.operations = ['providesHandlingOperation',
                            'providesJoiningOperation',
                            'providesSeparationOperation']
-        self.columns_rename = {'hasName': 'name', 
-                                'hasPrice': 'price', 
-                                'hasCycleTime':'cycle_time', 
-                                'hasFootprint': 'footprint', 
-                                'hasMaximumVelocity': 'velocity', 
-                                'hasMaximumAcceleration': 'acceleration',
-                                'isProcessTypeMD': 'module',
-                                'hasReach': 'reach'}
+        self.columns_rename = {'hasName': 'name',
+                               'hasPrice': 'price',
+                               'hasCycleTime': 'cycle_time',
+                               'hasFootprint': 'footprint',
+                               'hasMaximumVelocity': 'velocity',
+                               'hasMaximumAcceleration': 'acceleration',
+                               'isProcessTypeMD': 'module',
+                               'hasReach': 'reach',
+                               'providesHandlingOperation': 'operation_handling',
+                               'providesJoiningOperation': 'operation_joining',
+                               'providesSeparationOperation': 'operation_separation',
+                               }
         self.columns_csv = ['isProcessTypeMD', 'hasName', 'hasPrice', 'hasFootprint', 'providesOperation', 'hasCycleTime', 'hasMaximumVelocity', 'hasMaximumAcceleration', 'hasReach']
         self.df = self._read_database()
         self.df = self._postprocessing(self.df)
@@ -73,12 +77,12 @@ class Database:
         Returns:
             pd.DataFrame: resource database as dataframe with new column 'cycle_time'
         """
-        df['cycle_time'] = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
+        df['cycle_time'] = df.apply(lambda x: self.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
         return df
 
     def define_operation(self, df: pd.DataFrame) -> pd.DataFrame:
         for operation in self.operations:
-            df[operation] = df.loc[:, 'providesOperation'].apply(lambda x: self._check_operation(x, operation))
+            df[self.columns_rename[operation]] = df.loc[:, 'providesOperation'].apply(lambda x: self._check_operation(x, operation))
         return df
 
     def calc_time_for_distance(self, target_distance: float, velocity: float, acceleration: float) -> float:
@@ -166,6 +170,9 @@ if __name__ == "__main__":
     print(df)
 
 # %%
+df.loc[190:220, 'operation_handling']
+
+# %%
 # x = np.linspace(1, 15, 15)
 # l = [d.calc_distance_in_time(target_time=time, velocity=5e3, acceleration=1e3) for time in x]
 # data = go.Scatter(x=x, y=l)
@@ -201,4 +208,4 @@ time = d.calc_time_for_distance(target_distance=df_robots.iloc[-1]['reach'], vel
 print(f"takes {time} s")
 
 # %%
-df.loc[df.module=='RobotMD', 'price']
+df.loc[df.module == 'RobotMD', 'price']
