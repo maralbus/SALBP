@@ -170,9 +170,6 @@ if __name__ == "__main__":
     print(df)
 
 # %%
-df.loc[190:220, 'operation_handling']
-
-# %%
 # x = np.linspace(1, 15, 15)
 # l = [d.calc_distance_in_time(target_time=time, velocity=5e3, acceleration=1e3) for time in x]
 # data = go.Scatter(x=x, y=l)
@@ -186,26 +183,3 @@ df.loc[190:220, 'operation_handling']
 # fig = go.Figure(data=data)
 # fig.update_layout(title="Time for Distance", xaxis_title="Distance/mm", yaxis_title="Time/s")
 # fig.show()
-
-# %%
-df['cycle_time'] = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
-
-# %%
-df.cycle_time[df.cycle_time > 0]
-
-
-# %%
-df_robots = df[df['module'] == 'RobotMD'].copy()
-df.cycle_time = df.apply(lambda x: d.calc_time_for_distance(target_distance=x['reach'], velocity=x['velocity'], acceleration=x['acceleration']), axis=1)
-
-# %%
-for i in range(len(df_robots)):
-    cycle_time = d.calc_time_for_distance(target_distance=df_robots.iloc[i]['reach'], velocity=df_robots.iloc[i]['velocity'], acceleration=df_robots.iloc[i]['acceleration'])
-    print(cycle_time)
-
-# %%
-time = d.calc_time_for_distance(target_distance=df_robots.iloc[-1]['reach'], velocity=df_robots.iloc[-1]['velocity'], acceleration=df_robots.iloc[-1]['acceleration'])
-print(f"takes {time} s")
-
-# %%
-df.loc[df.module == 'RobotMD', 'price']
