@@ -21,9 +21,10 @@ from collections import namedtuple
 Task = namedtuple('Task', ['start', 'stop', 'interval', 'successor', 'predecessor'])
 
 class PrecedenceGraph:
-    def __init__(self):
+    def __init__(self, filepath: str):
         tags = ['num_tasks', 'cycle_time', 'task_time', 'precedence', 'task']
         self.data = {t: {} for t in tags}
+        self.load_data(filepath=filepath)
 
     def load_data(self, filepath: str) -> None:
         """
@@ -90,11 +91,9 @@ class PrecedenceGraph:
 
 # %%
 if __name__ == "__main__":
-    pg = PrecedenceGraph()
-    pg.load_data('../data/small_data_set_n_20/instance_n=20_1.alb')
+    pg = PrecedenceGraph('../data/small_data_set_n_20/instance_n=20_1.alb')
     print(pg.data)
     print('#' * 100)
-    pg.no_predecessor(pg.data['precedence'])
     pg.data['task_type'] = {1: 'transfer',
                             2: 'transfer',
                             3: 'transfer',
