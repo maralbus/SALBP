@@ -60,7 +60,16 @@ def plot_graph():
 plot_graph()
 # %%
 
-def all_predecessors(task_number: int) -> list:
+def all_predecessors(task_number: int) -> np.array:
+    """
+    recursively search the precedence graph for all predecessors of a given task number
+
+    Args:
+        task_number (int): task number from which all predecessors should be determined
+
+    Returns:
+        np.array: array with all predecessor task numbers
+    """
     precedence_list = []
     def find_all_prec(task_number, precedence_list):
         if tasks[task_number].predecessor:
@@ -68,7 +77,7 @@ def all_predecessors(task_number: int) -> list:
             for predecessor_ in tasks[task_number].predecessor:
                 find_all_prec(predecessor_, precedence_list)
     find_all_prec(task_number, precedence_list)
-    return list(set(precedence_list))
+    return np.array(list(set(precedence_list)))
 
 all_prec = all_predecessors(9)
 all_prec
@@ -105,43 +114,72 @@ print('Number of variables:', solver.NumVariables())
 # %%
 
 # create objective function
+# (1) represents the total design cost to be minimized
 solver.Minimize(solver.Sum(
     [cost[j] * y_jk[j, :].sum() for j in range(num_equipments)]
 ))
 
 # %%
+def multiply_with_index(array: np.array):
+    return np.arange(1, array.size + 1) @ array.transpose()
+
+
+def one_hot_bool(array: np.array, row_length: int) -> np.array:
+    """
+    return a one-hot encoded boolean array of shape (row_length, )
+    array specifies the indices of the one-hot values
+    e.g. np.array([0, 1, 3]), row_length = 4:
+        array([1., 1., 0., 1.])
+
+    Args:
+        array (np.array): index array
+        row_length (int): row length
+
+    Returns:
+        np.array: one-hot encoded bool array of shape (row_length, )
+    """
+    assert row_length >= array.size
+    one_hot = np.zeros(row_length, dtype=bool)
+    # convert from precedence graph based counting starting at 1 to array based starting at 0
+    one_hot[array - 1] = True
+    return one_hot
 
 # create constraints
-
 # (2) ensures that if task g is an immediate predecessor of task h, then it cannot be assigned to a station with a higher index than the station to which task h is assigned.
-# %%
-test_ijk = np.arange(num_tasks * num_equipments * num_stations).reshape(num_tasks, num_equipments, num_stations)
-test_jk = np.arange(18).reshape(3, 6)
+# [x] implemented
+for task in tasks:
+    task_precedence = all_predecessors(task)
+    if task_precedence.any():
+        one_hot_task_precedence = one_hot_bool(task_precedence, num_tasks)
+        for x_jk in x_ijk[one_hot_task_precedence]:
+            sum_k_xgjk = np.sum(np.apply_along_axis(multiply_with_index, 1, x_jk))
+            sum_l_xhjl = np.sum(np.apply_along_axis(multiply_with_index, 1, x_ijk[task - 1]))
+            solver.Add(sum_k_xgjk <= sum_l_xhjl)
 
-
-def calc_sum(test):
-    np.dot(np.arange(1, test.shape[0] + 1), test.transpose())
-
-np.apply_along_axis(calc_sum, 0, test_jk)
-
-# np.dot(np.arange(test_jk.shape[1]), test_jk[0, :])
-test_jk
-
-
-# np.dot(np.arange(x_ijk.shape[2]), x_ijk[0, 0, :])
+print('Number of constraints:', solver.NumConstraints())
 
 # %%
+# test_ijk = np.arange(num_tasks * num_equipments * num_stations).reshape(num_tasks, num_equipments, num_stations)
+# test_jk = np.arange(3 * num_tasks).reshape(3, num_tasks)
 
+# test = np.apply_along_axis(multiply_with_index, 1, test_jk)
+# test
+
+
+# %%
 # (3) ensures that each task is performed exactly once
+# [x] implemented
 for i in range(x_ijk.shape[0]):
     solver.Add(x_ijk[i].sum() == 1)
 
 # (4) represents the relationship between the x_ijk and the y_jk variables by not allowing any task to be performed on a given piece of equipment in a given station, if this equipment is not assigned to that station.
+# [ ] implemented
+
 
 # (5) represents the requirement of at most one piece of equipment at any station
+# [x] implemented
 for k in range(y_jk.shape[1]):
     solver.Add(y_jk[:, k].sum() <= 1)
-
 
 
 # %%
